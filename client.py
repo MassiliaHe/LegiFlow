@@ -51,22 +51,23 @@ def juri_chat(user_input : str) :
 
 
 
-with st.form("chat_form", clear_on_submit=False):
-
-    user_input = st.text_area(
-        "Pose ta question juridique :",
-        placeholder="Ex : Licenciement pour faute grave : quels délais ?",
-        height=120
-    )
-    submitted = st.form_submit_button("Submit")
-
-if submitted:
+if "user_input" not in st.session_state:
+    st.session_state["user_input"] = [{"role": "assistant", "content": "How can I help you?"}]
+for msg in st.session_state.user_input:
+    st.chat_message(msg["role"]).write(msg["content"])
+if prompt := st.chat_input():
     if not api_key:
-        st.warning("Ajoute d'abord ta GOOGLE_API_KEY dans la barre latérale.", icon="⚠️")
-    elif not user_input.strip():
-        st.warning("La question ne peut pas être vide.", icon="⚠️")
-    else:
-        with st.spinner("Analyse et recherche en cours…"):
-            answer = juri_chat(user_input)
-        st.markdown("### ✅ Réponse")
-        st.write(answer)
+        st.info("Please add your GOOGLE API KEY (Gemini) to continue.")
+        st.stop()
+    
+    st.session_state.user_input.append({"role": "user", "content": prompt})
+    st.chat_message("user").write(prompt)
+    llm = build_llm()
+
+    final_answer = juri_chat(prompt)
+    st.session_state.user_input.append({"role": "assistant", "content": final_answer})
+    st.chat_message("assistant").write(final_answer)
+
+
+
+
