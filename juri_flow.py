@@ -158,5 +158,4 @@ def juri_chat(user_input : str) :
     
     return final_ansewer.content 
 
-# if __name__ == "__main__":
-#     start_app()
+

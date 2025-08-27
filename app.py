@@ -1,10 +1,10 @@
 # app.py
 import os
-
 import streamlit as st
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from client import juri_chat
-
+from juri_flow import build_llm
 
 USER = "user"
 ASSISTANT = "assistant"
@@ -18,29 +18,30 @@ api_key = st.sidebar.text_input("GOOGLE API KEY (Gemini)", type="password")
 
 if api_key:
     os.environ["GOOGLE_API_KEY"] = api_key
+    llm = build_llm()
 else:
     st.info("Please add your GOOGLE API KEY")
 
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [{"role": ASSISTANT, "content": "How can I help you?"}]
-    
 
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
 
-user_input = st.chat_input(placeholder="Posez vos questions sur le droit français", accept_file="multiple", file_type=["pdf", "png", "csv", "jpg", "jpeg"])
+if user_input := st.chat_input(placeholder="Posez vos questions sur le droit français", accept_file="multiple"):
 
-if user_input:
-
-    input_text = user_input["text"]
-    input_files = user_input["files"]
-
-
+    input_text = (user_input.text or "").strip() 
     st.session_state.messages.append({"role": USER, "content": input_text})
     st.chat_message(USER).write(input_text)
 
-    final_answer = juri_chat(input_text) # files
+    human_content = [{"type": "text", "text": "Tu te comporte comme un OCR et tu les lis tous les fichiers"}]
+    for f in user_input.files:
+        if bytes_data := f.read():
+            human_content.append({"type": "media", "data": bytes_data, "mime_type": f.type})
+
+    ocr_answer = llm.invoke([HumanMessage(content=human_content)])
+    final_answer = juri_chat(input_text +"\n"+ ocr_answer.content) 
     st.session_state.messages.append({"role": ASSISTANT, "content": final_answer})
     st.chat_message(ASSISTANT).write(final_answer)
