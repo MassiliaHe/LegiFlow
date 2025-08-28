@@ -1,5 +1,6 @@
 # app.py
 import os
+from pathlib import Path
 import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
@@ -65,7 +66,7 @@ if user_input := st.chat_input(placeholder="Posez vos questions sur le droit fra
 
     """
 
-    
+    files_in_chat = []
     for f in user_input.files:
         if bytes_data := f.read():
             human_content = [
@@ -74,13 +75,25 @@ if user_input := st.chat_input(placeholder="Posez vos questions sur le droit fra
             ]
             structured_output = llm.with_structured_output(Metadata)
             answer: Metadata = structured_output.invoke([HumanMessage(content=human_content)])
+            relative_path = answer.to_path()
             print("final_answer : ", answer)
-
+            metadata_json = answer.model_dump_json()
+            files_in_chat.append(metadata_json) 
+            BASE_DIR = Path("/home/massilia/Documents")
             # get path
+            final_dir = BASE_DIR / relative_path
+            final_dir.mkdir(parents=True, exist_ok=True) 
             # use the bytes, file name and file type to save the file in the predicted path.
+            file_name = f.name
+            save_path = final_dir / file_name
+            with open(save_path, "wb") as out:
+                out.write(bytes_data)
+
+            print("Saved to:", save_path)
+
 
        
-    final_answer = juri_chat(input_text +"\n"+ answer.model_dump_json())
+    final_answer = juri_chat(input_text + "\n" + "\n".join(files_in_chat))
     st.session_state.messages.append({"role": ASSISTANT, "content": final_answer})
     st.chat_message(ASSISTANT).write(final_answer)
 

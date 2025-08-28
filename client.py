@@ -22,10 +22,10 @@ def juri_chat(user_input : str) :
 
     # recherche legifrance 
     words = " ".join(ai_msg.mots_cles)
-    code_search = (code.search()
-                    .in_code(ai_msg.codes_probables)  # Code civil
-                    .text(words)
-                    .execute())
+    # code_search = (code.search()
+    #                 .in_code(ai_msg.codes_probables)  # Code civil
+    #                 .text(words)
+    #                 .execute())
 
     juri_results_raw = juri_api.search(words)
     juri_result_format = format_jurisprudence_results(juri_results_raw)
