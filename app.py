@@ -10,8 +10,14 @@ from juri_flow import build_llm
 USER = "user"
 ASSISTANT = "assistant"
 
-class Metadata:
-    name: str
+class Metadata(BaseModel):
+    first_name: str
+    last_name: str
+    document_type: str
+    ocr_data: str
+
+    def to_path(self):
+        return f"{self.document_type}/{self.first_name}_{self.last_name}"
 
 
 st.set_page_config(page_title="Legifrance Search", page_icon="⚖️")
@@ -66,11 +72,15 @@ if user_input := st.chat_input(placeholder="Posez vos questions sur le droit fra
                 {"type": "text", "text": metadata_prompt}, 
                 {"type": "media", "data": bytes_data, "mime_type": f.type}
             ]
-            answer = llm.invoke([HumanMessage(content=human_content)])
+            structured_output = llm.with_structured_output(Metadata)
+            answer: Metadata = structured_output.invoke([HumanMessage(content=human_content)])
+            print("final_answer : ", answer)
 
+            # get path
+            # use the bytes, file name and file type to save the file in the predicted path.
 
-            
-    final_answer = juri_chat(input_text +"\n"+ answer.content)
+       
+    final_answer = juri_chat(input_text +"\n"+ answer.model_dump_json())
     st.session_state.messages.append({"role": ASSISTANT, "content": final_answer})
     st.chat_message(ASSISTANT).write(final_answer)
 
