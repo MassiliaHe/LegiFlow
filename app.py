@@ -2,12 +2,16 @@
 import os
 import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel
 
 from client import juri_chat
 from juri_flow import build_llm
 
 USER = "user"
 ASSISTANT = "assistant"
+
+class Metadata:
+    name: str
 
 
 st.set_page_config(page_title="Legifrance Search", page_icon="⚖️")
@@ -36,12 +40,37 @@ if user_input := st.chat_input(placeholder="Posez vos questions sur le droit fra
     st.session_state.messages.append({"role": USER, "content": input_text})
     st.chat_message(USER).write(input_text)
 
-    human_content = [{"type": "text", "text": "Tu te comporte comme un OCR et tu les lis tous les fichiers"}]
+    metadata_prompt = """
+    T'es un expert en extraction d'informations. T'as aussi la fonctionnalité OCR en toi. 
+    Tu va recevoir un document, et tu dois le lire attentivement. 
+
+    Tu dois extraire : 
+        - Le nom et le prénom de la personne à qui appartient le document. 
+        - Le type du document. Tu choisi impérativement l'un des types au dessous. 
+        - Tu revois le resultat de la foncationalité OCR.
+    
+    Types de document (choisir un seul):
+    - Procédure
+    - État civil
+    - Témoignages
+    - Impôts
+    - Intégration professionnelle
+    - Domicile
+
+    """
+
+    
     for f in user_input.files:
         if bytes_data := f.read():
-            human_content.append({"type": "media", "data": bytes_data, "mime_type": f.type})
+            human_content = [
+                {"type": "text", "text": metadata_prompt}, 
+                {"type": "media", "data": bytes_data, "mime_type": f.type}
+            ]
+            answer = llm.invoke([HumanMessage(content=human_content)])
 
-    ocr_answer = llm.invoke([HumanMessage(content=human_content)])
-    final_answer = juri_chat(input_text +"\n"+ ocr_answer.content) 
+
+            
+    final_answer = juri_chat(input_text +"\n"+ answer.content)
     st.session_state.messages.append({"role": ASSISTANT, "content": final_answer})
     st.chat_message(ASSISTANT).write(final_answer)
+
