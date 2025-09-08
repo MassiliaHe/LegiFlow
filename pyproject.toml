@@ -1,5 +1,5 @@
 [project]
-name = "tuto-4all"
+name = "tuto-4all"             # le nom du projet publié (libre)
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -15,6 +15,15 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "debugpy>=1.8.16",
-]
+dev = ["debugpy>=1.8.16"]
+
+# >>> AJOUTE CES BLOCS <<<
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

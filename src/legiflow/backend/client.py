@@ -1,5 +1,5 @@
 from langchain_core.messages import SystemMessage, HumanMessage
-from backend.juri_flow import (
+from .juri_flow import (
     Extraction,
     build_llm,
     build_extractor_system_prompt,

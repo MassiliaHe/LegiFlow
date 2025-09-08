@@ -5,11 +5,12 @@ from pathlib import Path
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel
 
-from backend.juri_flow import build_llm
+from .juri_flow import build_llm
 
 
+from importlib.resources import files
 
-with open("prompts.yaml", "r", encoding="utf-8") as f:
+with files("legiflow.backend").joinpath("prompts.yaml").open("r", encoding="utf-8") as f:
     config = yaml.safe_load(f)
 
 metadata = config["prompts"]["metadata"]

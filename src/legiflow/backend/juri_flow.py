@@ -13,8 +13,11 @@ from pylegifrance.fonds.juri import JuriAPI
 from dotenv import load_dotenv
 
 # PROMPTS_PATH = Path(__file__).parent / "backend/prompts.yaml"
-with open("backend/prompts.yaml", "r", encoding="utf-8") as f:
+from importlib.resources import files
+
+with files("legiflow.backend").joinpath("prompts.yaml").open("r", encoding="utf-8") as f:
     prompts = yaml.safe_load(f)
+
 
 
 

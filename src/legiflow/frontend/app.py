@@ -6,6 +6,7 @@ from legiflow.backend.client import juri_chat
 from legiflow.backend.juri_flow import build_llm
 from legiflow.backend.process_files import process_user_file
 
+
 USER = "user"
 ASSISTANT = "assistant"
 
